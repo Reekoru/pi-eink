@@ -28,7 +28,12 @@ static SPI_Config_t config =
 
 EPD_Status_t EPD_Init(void)
 {
-
+    // Initialize bcm2835 library
+    if (!bcm2835_init())
+    {
+        printf("bcm2835_init failed. Are you running with sudo?\n");
+        return EPD_STATUS_ERR;
+    }
     // Initialize GPIOs
     GPIO_SetDirOut(EPD_RST_PIN);
     GPIO_SetDirOut(EPD_DC_PIN);

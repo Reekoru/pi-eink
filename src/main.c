@@ -8,12 +8,6 @@
 int main()
 {
     printf("Starting Eink display app!\n\r");
-    // Initialize bcm2835 library
-    if (!bcm2835_init())
-    {
-        printf("bcm2835_init failed. Are you running with sudo?\n");
-        return 1;
-    }
 
     if(EPD_Init() != EPD_STATUS_OK)
     {
@@ -32,6 +26,6 @@ int main()
     // Clean up
     bcm2835_close();
     
-    printf("Hello There!\n\r");
+    puts("Closing application...");
     return 0;
 }
