@@ -22,6 +22,7 @@ public:
     static void DigitalWrite(int pin, int value); 
     static int  DigitalRead(int pin);
     static void DelayMs(unsigned int delaytime);
+    static void DelayUs(unsigned int delaytime);
     static void SpiTransfer(unsigned char data);
 };
 #endif

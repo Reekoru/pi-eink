@@ -64,8 +64,10 @@ public:
     ~Epd();
     int  Init(void);
     void WaitUntilIdle(void);
+    int Init_Fast();
     void Reset(void);
     void SetLut(void);
+    void Display_Init(void);
     void DisplayFrame(const unsigned char* frame_buffer);
     void SendCommand(unsigned char command);
     void SendData(unsigned char data);

@@ -20,6 +20,11 @@ void EpdIf::DelayMs(unsigned int delaytime) {
     bcm2835_delay(delaytime);
 }
 
+void EpdIf::DelayUs(unsigned int delaytime) {
+    bcm2835_delayMicroseconds(delaytime);
+}
+
+
 void EpdIf::SpiTransfer(unsigned char data) {
     bcm2835_spi_transfer(data);
 }

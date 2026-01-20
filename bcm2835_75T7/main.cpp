@@ -18,7 +18,8 @@
 int main(void)
 {
     Epd epd;
-    if (epd.Init() != 0) {
+    puts("e-Paper demo");
+    if (epd.Init_Fast() != 0) {
         printf("e-Paper init failed\n");
         return -1;
     }
@@ -44,12 +45,26 @@ int main(void)
 
     /* Display the frame_buffer */
     epd.DisplayFrame(frame_buffer);
-    bcm2835_delay(2000);  
-
+    // epd.Reset();
+    // bcm2835_delay(1000);  
     /* Display the image buffer */
-    epd.DisplayFrame(gImage_1);
+    // epd.Sleep();
+    bcm2835_delay(2000);  
+    // epd.Init();
+    // epd.Display_Init();
+    epd.DisplayFrame(gImage_library_atk);
+
+    bcm2835_delay(2000);  
+    epd.DisplayFrame(gImage_panel_atk);
+
+    bcm2835_delay(2000);  
+    epd.DisplayFrame(gImage_anime);
+
     epd.Sleep(); //EPD_sleep,Sleep instruction is necessary, please do not delete!!!
-    while(1);
+    while(1)
+    {
+
+    }
     return 0;
 }
 

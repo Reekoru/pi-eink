@@ -81,7 +81,7 @@ void Epd::DisplayFrame(const unsigned char* frame_buffer) {
         for(int i = 0; i < width * height / 8; i++) {
             SendData(0x00);      // bit set: white, bit reset: black
         }
-        DelayMs(2);
+        DelayMs(100);
         SendCommand(0x13); 
         for(int i = 0; i < width * height / 8; i++) {
             SendData(frame_buffer[i]);
@@ -89,9 +89,63 @@ void Epd::DisplayFrame(const unsigned char* frame_buffer) {
         DelayMs(2);                  
     }
     SendCommand(0x12); 
+    DelayMs(1000);
+    WaitUntilIdle();
+
+}
+
+int Epd::Init_Fast(){
+    if (IfInit() != 0) {
+        return -1;
+    }
+    DigitalWrite(reset_pin, LOW);
+    DelayMs(10);
+    DigitalWrite(reset_pin, HIGH);                //module reset
+    DelayMs(10);
+
+    SendCommand(0x00);
+    SendData(0x1F);
+
+    SendCommand(0x50);
+    SendData(0x10);
+    SendData(0x07);
+
+    SendCommand(0x04);
     DelayMs(100);
     WaitUntilIdle();
 
+    SendCommand(0x06);
+    SendData(0x27);
+    SendData(0x27);
+    SendData(0x18);
+    SendData(0x17);
+
+    SendCommand(0xE0);
+    SendData(0x02);
+
+    SendCommand(0xE5);
+    SendData(0x4E);  // Changed from 0x5A to 0x6E for proper display mode
+    return 0;
+}
+
+void Epd::Display_Init(void){
+    DigitalWrite(reset_pin, LOW);
+    DelayMs(10);
+    DigitalWrite(reset_pin, HIGH);                //module reset
+    DelayMs(10);
+
+    SendCommand(0x00);
+    SendData(0x1F);
+
+    SendCommand(0x04);
+    DelayMs(100);
+    WaitUntilIdle();
+
+    SendCommand(0xE0);
+    SendData(0x02);
+    
+    SendCommand(0xE5);
+    SendData(0x6E);
 }
 
 /**
