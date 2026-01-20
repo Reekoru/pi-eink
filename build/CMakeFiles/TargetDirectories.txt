@@ -1,7 +1,0 @@
-/home/reeko/Shared/pi-eink/build/CMakeFiles/edit_cache.dir
-/home/reeko/Shared/pi-eink/build/CMakeFiles/rebuild_cache.dir
-/home/reeko/Shared/pi-eink/build/src/CMakeFiles/drivers.dir
-/home/reeko/Shared/pi-eink/build/src/CMakeFiles/utils.dir
-/home/reeko/Shared/pi-eink/build/src/CMakeFiles/app.dir
-/home/reeko/Shared/pi-eink/build/src/CMakeFiles/edit_cache.dir
-/home/reeko/Shared/pi-eink/build/src/CMakeFiles/rebuild_cache.dir
