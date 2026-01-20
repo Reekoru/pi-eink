@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdrivers.a CMakeFiles/drivers.dir/drivers/epd.c.o CMakeFiles/drivers.dir/drivers/gpio.c.o CMakeFiles/drivers.dir/drivers/gt911.c.o
-/usr/bin/ranlib libdrivers.a

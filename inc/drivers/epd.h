@@ -73,8 +73,11 @@ EPD_Status_t EPD_Init(void);
 EPD_Status_t EPD_DisplayInit(void);
 EPD_Status_t EPD_Clear(void);
 EPD_Status_t EPD_DisplayImage(const uint8_t* image);
+void EPD_EnableTemperatureSensor();
+void EPD_ReadTemperatureSensor();
 void EPD_WaitUntilIdle(void);
 void EPD_Reset(void);
 void EPD_Sleep(void);
+void EPD_Close(void);
 
 #endif // EPD_H

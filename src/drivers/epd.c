@@ -5,6 +5,7 @@
 #include "project_settings.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <bcm2835.h>
 
 #define EPD_BUSY_PIN 24
 #define EPD_DC_PIN 25
@@ -41,10 +42,7 @@ EPD_Status_t EPD_Init(void)
 
     SPI_Init(config);
 
-    GPIO_SetLevel(EPD_RST_PIN, GPIO_LOW);
-    delay_ms(10);
-    GPIO_SetLevel(EPD_RST_PIN, GPIO_HIGH);
-    delay_ms(10);
+    EPD_Reset();
 
     EPD_WriteCmd(PSR_CMD);
     EPD_WriteData(0x1F);
@@ -143,6 +141,11 @@ void EPD_Sleep(void)
 
     EPD_WriteCmd(DSLP_CMD);
     EPD_WriteData(0xA5);
+}
+
+void EPD_Close(void)
+{
+    bcm2835_close();
 }
 
 /* Private functions */
