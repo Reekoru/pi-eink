@@ -148,6 +148,16 @@ void EPD_Close(void)
     bcm2835_close();
 }
 
+void EPD_EnableTemperatureSensor()
+{
+
+}
+
+void EPD_ReadTemperatureSensor()
+{
+    
+}
+
 /* Private functions */
 static void EPD_WriteCmd(uint8_t cmd)
 {
