@@ -69,15 +69,19 @@ typedef enum {
     EPD_STATUS_ERR
 } EPD_Status_t;
 
+EPD_Status_t EPD_Init_bcme2835(void);
 EPD_Status_t EPD_Init(void);
+EPD_Status_t EPD_Init_4g(void);
 EPD_Status_t EPD_DisplayInit(void);
 EPD_Status_t EPD_Clear(void);
 EPD_Status_t EPD_DisplayImage(const uint8_t* image);
+EPD_Status_t EPD_DisplayImage_4g(const uint8_t* image);
 void EPD_EnableTemperatureSensor();
 void EPD_ReadTemperatureSensor();
 void EPD_WaitUntilIdle(void);
 void EPD_Reset(void);
 void EPD_Sleep(void);
 void EPD_Close(void);
+void EPD_Update(void);
 
 #endif // EPD_H

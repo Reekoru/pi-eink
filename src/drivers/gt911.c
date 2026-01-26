@@ -45,6 +45,15 @@ static void _GT911_Init_GPIO(void);
 /* Function definitions */
 GT911_Status_t GT911_Reset(void)
 {
+    GPIO_SetDirIn(TP_INT_PIN, true);
+    GPIO_SetLevel(TP_RST_PIN, LOW);
+    delay(20);
+    GPIO_SetLevel(TP_INT_PIN, LOW);
+    delay(20);
+    GPIO_SetLevel(TP_RST_PIN, HIGH);
+    delay(100);
+    GPIO_SetDirOut(TP_INT_PIN);
+    delay(100);
     return GT911_OK;
 }
 
@@ -62,6 +71,8 @@ GT911_Status_t GT911_Init(void)
     {
         return GT911_ERR;
     }
+
+
 
     return GT911_OK;
 }

@@ -6,23 +6,36 @@
 
 int main()
 {
-    printf("Starting Eink display app!\n\r");
-
-    if(EPD_Init() != EPD_STATUS_OK)
-    {
-        printf("EPD failed to initialize\n\r");
-        EPD_Close();
-        return 1;
-    }
-
-    printf("EPD has been initialized!\n\r");
-
-    EPD_DisplayImage(test_image_2);
-    delay_ms(2000);
-    EPD_DisplayImage(test_image_1);
-    EPD_Sleep();
+    puts("Starting GT911");
+    // puts("Starting Eink display app!");
+    // if(EPD_Init_bcme2835() != EPD_STATUS_OK)
+    // {
+    //     printf("bcme2835 failed to initialize\n\r");
+    //     EPD_Close();
+    //     return 1;
+    // }
+    // puts("Initializing EPD...");
+    // // EPD_Init();
+    // // EPD_DisplayImage(gImage_library);
+    // // EPD_Sleep();
+    // // delay_ms(2000);
     
-    EPD_Close();
+    // EPD_Init_4g();
+    // EPD_DisplayImage_4g(gImage_4Glibrary);
+    // EPD_Sleep();
+    // delay_ms(2000);
+
+    // // EPD_Init();
+    // // EPD_DisplayImage(gImage_panel);
+    // // EPD_Sleep();
+    // // delay_ms(2000);
+    
+    // EPD_Init_4g();
+    // EPD_DisplayImage_4g(gImage_4Gpanel);
+    // EPD_Sleep();
+    // delay_ms(2000);
+    
+    // EPD_Close();
     
     puts("Closing application...");
     return 0;

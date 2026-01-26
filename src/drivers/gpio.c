@@ -24,7 +24,7 @@ void GPIO_SetDirOut(uint8_t pin)
     bcm2835_gpio_fsel(pin, BCM2835_GPIO_FSEL_OUTP);
 }
 
-void GPIO_SetLevel(uint8_t pin, GPIO_Level_t highlow)
+void GPIO_SetLevel(uint8_t pin, uint8_t highlow)
 {
     bcm2835_gpio_write(pin, highlow);
 }
