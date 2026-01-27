@@ -1,16 +1,21 @@
 #include <stdint.h>
+#include <stdio.h>
 #include "drivers/gt911.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <bcm2835.h>
+#include <string.h>
 #include "project_settings.h"
 #include "drivers/gpio.h"
+#include "drivers/i2c.h"
 
 #define GT911_ADDR 0x5D
 #define I2C_BUS "/dev/i2c-1"
 #define GT911_RCONFIG_REG 0x8047
+
+static uint8_t tx_buffer[200];
 
 // https://www.orientdisplay.com/pdf/GT911.pdf
 static uint8_t GT911_Config[] = {\
@@ -41,38 +46,39 @@ static uint8_t GT911_Config[] = {\
 
 /* Private function prototypes */
 static void _GT911_Init_GPIO(void);
+static GT911_Status_t _GT911_SendConfig();
 
 /* Function definitions */
 GT911_Status_t GT911_Reset(void)
 {
-    GPIO_SetDirIn(TP_INT_PIN, true);
+    GPIO_SetDirOut(TP_INT_PIN);
     GPIO_SetLevel(TP_RST_PIN, LOW);
     delay(20);
     GPIO_SetLevel(TP_INT_PIN, LOW);
     delay(20);
     GPIO_SetLevel(TP_RST_PIN, HIGH);
-    delay(100);
-    GPIO_SetDirOut(TP_INT_PIN);
-    delay(100);
+    delay(50);
+    GPIO_SetDirIn(TP_INT_PIN, false); // Leave floating input
     return GT911_OK;
 }
 
 GT911_Status_t GT911_Init(void)
 {
     // Open I2C Bus
-    int fd = open(I2C_BUS, O_RDWR);
-    if(fd < 0)
+    puts("Opening I2C bus");
+    I2C_Config_t config = {.slaveAddr = GT911_ADDR, .clockDivider = I2C_CLOCK_DIVIDER_2500};
+    if(I2C_Init(config) != I2C_OK)
     {
+        puts("Err");
         return GT911_ERR;
     }
 
-    // Access GT911
-    if(ioctl(fd, I2C_SLAVE, GT911_ADDR) < 0)
-    {
-        return GT911_ERR;
-    }
+    puts("Resetting GT911");
+    GT911_Reset();
+    delay(100); // Have to wait at least 50 ms before configuration
 
-
+    puts("Configuring GT911");
+    _GT911_SendConfig();
 
     return GT911_OK;
 }
@@ -80,4 +86,12 @@ GT911_Status_t GT911_Init(void)
 void _GT911_Init_GPIO(void)
 {
     GPIO_SetDirIn(TP_INT_PIN, true);
+}
+
+static GT911_Status_t _GT911_SendConfig()
+{
+    tx_buffer[0] = (GT911_RCONFIG_REG & 0xFF00) >> 8;
+    tx_buffer[1] = (GT911_RCONFIG_REG & 0xFF);
+    memcpy(&tx_buffer[2], GT911_Config, sizeof(GT911_Config));
+    I2C_Write(tx_buffer, sizeof(GT911_Config) + 2);
 }

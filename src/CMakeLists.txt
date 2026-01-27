@@ -2,6 +2,7 @@ add_library(drivers
     drivers/epd.c
     drivers/gpio.c
     drivers/gt911.c
+    drivers/i2c.c
 )
 
 add_library(utils

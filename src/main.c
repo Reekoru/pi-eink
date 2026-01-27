@@ -2,6 +2,8 @@
 #include "utils/spi.h"
 #include "drivers/epd.h"
 #include "img.h"
+#include "drivers/gt911.h"
+#include "drivers/gpio.h"
 #include "utils/time.h"
 
 int main()
@@ -36,6 +38,12 @@ int main()
     // delay_ms(2000);
     
     // EPD_Close();
+    GPIO_Init();
+    if(GT911_Init() != GT911_OK)
+    {
+        puts("Something has gone wrong");
+        return 1;
+    }
     
     puts("Closing application...");
     return 0;
