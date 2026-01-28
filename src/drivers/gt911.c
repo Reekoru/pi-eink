@@ -13,9 +13,12 @@
 
 #define GT911_ADDR 0x5D
 #define I2C_BUS "/dev/i2c-1"
-#define GT911_RCONFIG_REG 0x8047
 
-static uint8_t tx_buffer[200];
+#define GT911_CONFIG_ADDR 0x8047
+#define GT911_READ_REG 0x814E
+
+static uint8_t tx_buffer[256];
+static uint8_t rx_buffer[256];
 
 // https://www.orientdisplay.com/pdf/GT911.pdf
 static uint8_t GT911_Config[] = {\
@@ -47,6 +50,8 @@ static uint8_t GT911_Config[] = {\
 /* Private function prototypes */
 static void _GT911_Init_GPIO(void);
 static GT911_Status_t _GT911_SendConfig();
+static GT911_Status_t GT911_ClearStatus(void);
+
 
 /* Function definitions */
 GT911_Status_t GT911_Reset(void)
@@ -58,7 +63,7 @@ GT911_Status_t GT911_Reset(void)
     delay(20);
     GPIO_SetLevel(TP_RST_PIN, HIGH);
     delay(50);
-    GPIO_SetDirIn(TP_INT_PIN, false); // Leave floating input
+    GPIO_SetDirIn(TP_INT_PIN, true); // Leave floating input
     return GT911_OK;
 }
 
@@ -76,6 +81,7 @@ GT911_Status_t GT911_Init(void)
     puts("Resetting GT911");
     GT911_Reset();
     delay(100); // Have to wait at least 50 ms before configuration
+    GT911_ReadProductID();
 
     puts("Configuring GT911");
     _GT911_SendConfig();
@@ -83,15 +89,55 @@ GT911_Status_t GT911_Init(void)
     return GT911_OK;
 }
 
-void _GT911_Init_GPIO(void)
+/**
+ * @brief Reads the register 0x814E which holds the status, large touch, Key, and # gestures
+ * @param status Pointer to the output of the read command.
+ * @return GT911_OK if successful, GT911_ERR if error
+ */
+GT911_Status_t GT911_ReadStatus(uint8_t *status)
 {
     GPIO_SetDirIn(TP_INT_PIN, true);
+    tx_buffer[0] = (GT911_READ_REG & 0xFF00) >> 8;
+    tx_buffer[1] = (GT911_READ_REG & 0xFF);
+    GT911_Status_t ret = I2C_Write(tx_buffer, 2); // Send to read from 0x814E
+    
+    if (ret != I2C_OK) return ret;
+
+    ret = I2C_Read(rx_buffer, 1); // Read status register
+
+    if (ret != I2C_OK) return ret;
+
+    *status = rx_buffer[0];
+    GT911_ClearStatus();
+    return GT911_OK;
 }
+
+void GT911_ReadProductID(void)
+{
+    tx_buffer[0] = 0x81;
+    tx_buffer[1] = 0x40;
+    I2C_Write(tx_buffer, 2);
+    I2C_Read(rx_buffer, 4);
+    printf("GT911 ID: %c%c%c%c\n",
+           rx_buffer[0], rx_buffer[1],
+           rx_buffer[2], rx_buffer[3]);
+}
+
+
+
 
 static GT911_Status_t _GT911_SendConfig()
 {
-    tx_buffer[0] = (GT911_RCONFIG_REG & 0xFF00) >> 8;
-    tx_buffer[1] = (GT911_RCONFIG_REG & 0xFF);
+    tx_buffer[0] = (GT911_CONFIG_ADDR & 0xFF00) >> 8;
+    tx_buffer[1] = (GT911_CONFIG_ADDR & 0xFF);
     memcpy(&tx_buffer[2], GT911_Config, sizeof(GT911_Config));
-    I2C_Write(tx_buffer, sizeof(GT911_Config) + 2);
+    return I2C_Write(tx_buffer, sizeof(GT911_Config) + 2);
+}
+
+static GT911_Status_t GT911_ClearStatus(void)
+{
+    tx_buffer[0] = (GT911_READ_REG >> 8) & 0xFF;
+    tx_buffer[1] = GT911_READ_REG & 0xFF;
+    tx_buffer[2] = 0x00;
+    return I2C_Write(tx_buffer, 3);
 }

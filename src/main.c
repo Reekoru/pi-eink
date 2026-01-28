@@ -44,6 +44,17 @@ int main()
         puts("Something has gone wrong");
         return 1;
     }
+    uint8_t status;
+    while(1)
+    {
+        if(GT911_ReadStatus(&status) != GT911_OK)
+            break;
+        
+            if((status & 0x80) != 0)
+            {
+                puts("Touch!");
+            }
+    }
     
     puts("Closing application...");
     return 0;

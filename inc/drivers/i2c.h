@@ -2,6 +2,7 @@
 #define I2C_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef enum
 {
@@ -29,7 +30,7 @@ typedef struct
 
 
 I2C_Status_t I2C_Init(I2C_Config_t config);
-I2C_Status_t I2C_Read();
-I2C_Status_t I2C_Write();
+I2C_Status_t I2C_Read(uint8_t* rx, size_t len);
+I2C_Status_t I2C_Write(uint8_t* tx, size_t len);
 
 #endif // I2C_H
