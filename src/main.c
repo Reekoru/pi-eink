@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "utils/spi.h"
+#include "drivers/spi.h"
 #include "drivers/epd.h"
 #include "img.h"
 #include "drivers/gt911.h"
@@ -44,15 +44,24 @@ int main()
         puts("Something has gone wrong");
         return 1;
     }
-    uint8_t status;
+
+    delay_ms(1000);
+    GT911_Coordinates_t coordinates;
+    uint8_t num_coordinates;
+
+    puts("Starting main application...");
     while(1)
     {
-        if(GT911_ReadStatus(&status) != GT911_OK)
+        if(GT911_ReadTouch(&coordinates, &num_coordinates) != GT911_OK)
             break;
         
-            if((status & 0x80) != 0)
+            if(num_coordinates > 0)
             {
-                puts("Touch!");
+                for(uint8_t i = 0; i < num_coordinates; i++)
+                {
+                    printf("Touch %d - X: %d \t Y: %d", i, coordinates.x, coordinates.y);
+                }
+                printf("\n\r");
             }
     }
     

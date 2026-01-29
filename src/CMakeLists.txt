@@ -3,11 +3,11 @@ add_library(drivers
     drivers/gpio.c
     drivers/gt911.c
     drivers/i2c.c
+    drivers/spi.c
 )
 
 add_library(utils
     utils/time.c
-    utils/spi.c
 )
 
 add_executable(app
