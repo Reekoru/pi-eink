@@ -69,12 +69,12 @@ GT911_Status_t GT911_Reset(void)
     return GT911_OK;
 }
 
-GT911_Status_t GT911_Init(void)
+GT911_Status_t GT911_Init(GT911_Config_t config)
 {
     // Open I2C Bus
     puts("Opening I2C bus");
-    I2C_Config_t config = {.slaveAddr = GT911_ADDR, .clockDivider = I2C_CLOCK_DIVIDER_2500};
-    if(I2C_Init(config) != I2C_OK)
+    I2C_Config_t i2c_config = {.slaveAddr = GT911_ADDR, .clockDivider = I2C_CLOCK_DIVIDER_2500};
+    if(I2C_Init(i2c_config) != I2C_OK)
     {
         puts("Err");
         return GT911_ERR;
@@ -86,6 +86,21 @@ GT911_Status_t GT911_Init(void)
     GT911_ReadProductID();
 
     puts("Configuring GT911...");
+
+    // Configure resolution
+    GT911_Config[1] = config.x_resolution & 0xFF;
+    GT911_Config[2] = (config.x_resolution & 0xFF00) >> 8;
+    GT911_Config[3] = config.y_resolution & 0xFF;
+    GT911_Config[4] = (config.y_resolution & 0xFF00) >> 8;
+
+    GT911_Config[5] = config.num_touch_points & 0x0F;
+
+    GT911_Config[6] = 0;
+	GT911_Config[6] |= config.reverse_y << 7;
+	GT911_Config[6] |= config.reverse_x << 6;
+	GT911_Config[6] |= config.switch_xy << 3;
+	GT911_Config[6] |= config.sw_noise_reduction << 2;
+
     _calculate_checksum();
     if(_GT911_SendConfig() !=  I2C_OK)
     {
@@ -155,9 +170,7 @@ void GT911_ReadProductID(void)
            rx_buffer[2], rx_buffer[3]);
 }
 
-
-
-
+/* Private functions*/
 static GT911_Status_t _GT911_SendConfig()
 {
     tx_buffer[0] = (GT911_CONFIG_ADDR & 0xFF00) >> 8;

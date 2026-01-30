@@ -38,8 +38,9 @@ int main()
     // delay_ms(2000);
     
     // EPD_Close();
+    GT911_Config_t gt911_config = {.x_resolution=480, .y_resolution=800, .num_touch_points=1, .reverse_y = true, .reverse_x = true, .switch_xy=false, .sw_noise_reduction=true};
     GPIO_Init();
-    if(GT911_Init() != GT911_OK)
+    if(GT911_Init(gt911_config) != GT911_OK)
     {
         puts("Something has gone wrong");
         return 1;
