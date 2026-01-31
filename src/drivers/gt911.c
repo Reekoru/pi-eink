@@ -180,7 +180,6 @@ void GT911_ReadProductID(void)
            rx_buffer[2], rx_buffer[3]);
 }
 
-
 GT911_Status_t GT911_ClearStatus(void)
 {
     tx_buffer[0] = (GT911_STATUS_ADDR >> 8) & 0xFF;
