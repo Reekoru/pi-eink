@@ -11,12 +11,14 @@
 #include "drivers/gpio.h"
 #include "drivers/i2c.h"
 
-#define GT911_ADDR 0x5D
+#define GT911_ADDR 0x14
 #define I2C_BUS "/dev/i2c-1"
 
 #define GT911_CONFIG_ADDR 0x8047
 #define GT911_STATUS_ADDR 0x814E
-#define GT911_TOUCH1_ADDR 0x8158
+#define GT911_TOUCH1_ADDR 0x8150
+#define GT911_COMMAND_CHECK_ADDR 0x8046
+#define GT911_COMMAND_ADDR 0x8040
 
 static uint8_t tx_buffer[256];
 static uint8_t rx_buffer[256];
@@ -52,7 +54,6 @@ static uint8_t GT911_Config[] = {
 static void _GT911_Init_GPIO(void);
 static void _calculate_checksum(void);
 static GT911_Status_t _GT911_SendConfig();
-static GT911_Status_t GT911_ClearStatus(void);
 
 
 /* Function definitions */
@@ -69,12 +70,12 @@ GT911_Status_t GT911_Reset(void)
     return GT911_OK;
 }
 
-GT911_Status_t GT911_Init(void)
+GT911_Status_t GT911_Init(GT911_Config_t config)
 {
     // Open I2C Bus
     puts("Opening I2C bus");
-    I2C_Config_t config = {.slaveAddr = GT911_ADDR, .clockDivider = I2C_CLOCK_DIVIDER_2500};
-    if(I2C_Init(config) != I2C_OK)
+    I2C_Config_t i2c_config = {.slaveAddr = GT911_ADDR, .clockDivider = I2C_CLOCK_DIVIDER_2500};
+    if(I2C_Init(i2c_config) != I2C_OK)
     {
         puts("Err");
         return GT911_ERR;
@@ -86,11 +87,32 @@ GT911_Status_t GT911_Init(void)
     GT911_ReadProductID();
 
     puts("Configuring GT911...");
+
+    // Configure resolution
+    GT911_Config[1] = config.x_resolution & 0xFF;
+    GT911_Config[2] = (config.x_resolution & 0xFF00) >> 8;
+    GT911_Config[3] = config.y_resolution & 0xFF;
+    GT911_Config[4] = (config.y_resolution & 0xFF00) >> 8;
+
+    GT911_Config[5] = config.num_touch_points & 0x0F;
+
+    GT911_Config[6] = 0;
+	GT911_Config[6] |= config.reverse_y << 7;
+	GT911_Config[6] |= config.reverse_x << 6;
+	GT911_Config[6] |= config.switch_xy << 3;
+	GT911_Config[6] |= config.sw_noise_reduction << 2;
+
     _calculate_checksum();
+
+    GT911_Reset();
+    delay(100);
+
     if(_GT911_SendConfig() !=  I2C_OK)
     {
         puts("Something went wrong");
     }
+
+    GT911_SetCommand(0x00);
     puts("Successfully configured");
     return GT911_OK;
 }
@@ -106,15 +128,10 @@ GT911_Status_t GT911_ReadStatus(uint8_t *status)
     tx_buffer[0] = (GT911_STATUS_ADDR & 0xFF00) >> 8;
     tx_buffer[1] = (GT911_STATUS_ADDR & 0xFF);
     GT911_Status_t ret = I2C_Write(tx_buffer, 2); // Send to read from 0x814E
-    
     if (ret != I2C_OK) return ret;
-
     ret = I2C_Read(rx_buffer, 1); // Read status register
-
     if (ret != I2C_OK) return ret;
-
     *status = rx_buffer[0];
-    GT911_ClearStatus();
     return GT911_OK;
 }
 
@@ -124,24 +141,32 @@ GT911_Status_t GT911_ReadTouch(GT911_Coordinates_t *coordinates, uint8_t *num_co
     GT911_Status_t ret = GT911_ReadStatus(&status);
     if(ret != GT911_OK) return ret;
     if((status & 0x80) == 0) return GT911_STATUS_NREADY;
-
-    puts("Ready");
-
     *num_coordinates = status & 0x0F;
 
-    printf("Num coord: %d\n\r", *num_coordinates);
-
-    for(uint8_t i = 0; i < (*num_coordinates); i++)
+    if(*num_coordinates != 0)
     {
-        tx_buffer[0] = ((GT911_TOUCH1_ADDR + (8 * (i - 1))) & 0xFF00) >> 8; // Next gesture has 1 byte offset
-        tx_buffer[1] = ((GT911_TOUCH1_ADDR + (8 * (i - 1))) & 0x00FF);
-        I2C_Write(tx_buffer, 2);
-        I2C_Read(rx_buffer, 6);
+        for(uint8_t i = 0; i < (*num_coordinates); i++)
+        {
+            tx_buffer[0] = ((GT911_TOUCH1_ADDR + (8 * i)) & 0xFF00) >> 8; // Next gesture has 1 byte offset
+            tx_buffer[1] = ((GT911_TOUCH1_ADDR + (8 * i)) & 0x00FF);
+            I2C_Write(tx_buffer, 2);
+            I2C_Read(rx_buffer, 6);
 
-        coordinates->x = (rx_buffer[1] << 8) | rx_buffer[0];
-        coordinates->y = (rx_buffer[3] << 8) | rx_buffer[2];
+            coordinates->x = (rx_buffer[1] << 8) | rx_buffer[0];
+            coordinates->y = (rx_buffer[3] << 8) | rx_buffer[2];
+        }
     }
+
+    GT911_ClearStatus();
     return GT911_OK;
+}
+
+GT911_Status_t GT911_SetCommand(uint8_t command){
+	tx_buffer[0] = (GT911_COMMAND_ADDR & 0xFF00) >> 8;
+	tx_buffer[1] = GT911_COMMAND_ADDR & 0xFF;
+	tx_buffer[2] = command;
+    I2C_Write(tx_buffer, 3);
+	return GT911_OK;
 }
 
 void GT911_ReadProductID(void)
@@ -156,22 +181,21 @@ void GT911_ReadProductID(void)
 }
 
 
+GT911_Status_t GT911_ClearStatus(void)
+{
+    tx_buffer[0] = (GT911_STATUS_ADDR >> 8) & 0xFF;
+    tx_buffer[1] = GT911_STATUS_ADDR & 0xFF;
+    tx_buffer[2] = 0x00;
+    return I2C_Write(tx_buffer, 3);
+}
 
-
+/* Private functions*/
 static GT911_Status_t _GT911_SendConfig()
 {
     tx_buffer[0] = (GT911_CONFIG_ADDR & 0xFF00) >> 8;
     tx_buffer[1] = (GT911_CONFIG_ADDR & 0xFF);
     memcpy(&tx_buffer[2], GT911_Config, sizeof(GT911_Config));
     return I2C_Write(tx_buffer, sizeof(GT911_Config) + 2);
-}
-
-static GT911_Status_t GT911_ClearStatus(void)
-{
-    tx_buffer[0] = (GT911_STATUS_ADDR >> 8) & 0xFF;
-    tx_buffer[1] = GT911_STATUS_ADDR & 0xFF;
-    tx_buffer[2] = 0x00;
-    return I2C_Write(tx_buffer, 3);
 }
 
 static void _calculate_checksum(void)
