@@ -8,11 +8,13 @@
 #define delay_us(us) bcm2835_delayMicroseconds(us)
 
 typedef enum{
-    STATUS_OK,
-    STATUS_ERR,
-    STATUS_DATA,
-    STATUS_CLKT,
-    STATUS_NACK
+    PI_OK,
+    PI_ERR,
+    PI_ERR_DATA,
+    PI_ERR_CLKT,
+    PI_ERR_NACK,
+    PI_ERR_INVALID_PARAM,
+    PI_ERR_OUT_OF_MEMORY
 }err_t;
 
 void exit_program(int code);

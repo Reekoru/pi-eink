@@ -9,6 +9,7 @@ add_library(drivers
 add_library(utils
     utils/time.c
     utils/utilities.c
+    utils/image.c
 )
 
 add_executable(app
@@ -31,4 +32,5 @@ target_link_libraries(app
     drivers
     utils
     bcm2835
+    m
 )

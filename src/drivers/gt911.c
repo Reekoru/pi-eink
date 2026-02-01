@@ -11,7 +11,7 @@
 #include "drivers/gpio.h"
 #include "drivers/i2c.h"
 
-#define GT911_ADDR 0x14
+#define GT911_ADDR 0x5D
 #define I2C_BUS "/dev/i2c-1"
 
 #define GT911_CONFIG_REG 0x8047

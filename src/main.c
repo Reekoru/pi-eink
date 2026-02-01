@@ -6,6 +6,7 @@
 #include "drivers/gpio.h"
 #include "utils/time.h"
 #include "utils/utilities.h"
+#include "utils/image.h"
 
 static void OnTouchReleased(GT911_TouchPoint_t *touch);
 
@@ -15,6 +16,42 @@ int main()
 {
     puts("Starting GT911");
     puts("Starting Eink display app!");
+
+    uint8_t* grayscale_image = NULL;
+    size_t image_size = 0;
+    err_t result = LoadImageFromFile("src/images/Library.jpg", &grayscale_image, &image_size);
+    if (result != PI_OK) {
+        fprintf(stderr, "Failed to load image: error %d\n", result);
+        return 1;
+    }
+
+    const size_t width = 800;
+    const size_t height = 480;
+    
+    // Verify the loaded image size matches expected dimensions
+    if (image_size != width * height) {
+        fprintf(stderr, "Image size mismatch: expected %zu, got %zu\n", 
+                width * height, image_size);
+        free(grayscale_image);
+        return 1;
+    }
+
+    size_t output_size = (width * height + 7) / 8;
+    uint8_t* dithered_image = (uint8_t*)malloc(output_size);
+    if (!dithered_image) {
+        fprintf(stderr, "Failed to allocate output buffer\n");
+        free(grayscale_image);
+        return 1;
+    }
+
+    result = dither_image(grayscale_image, dithered_image, width, height);
+    if (result != PI_OK) {
+        fprintf(stderr, "Failed to dither image: error %d\n", result);
+        free(grayscale_image);
+        free(dithered_image);
+        return 1;
+    }
+
     if(EPD_Init_bcme2835() != EPD_STATUS_OK)
     {
         printf("bcme2835 failed to initialize\n\r");
@@ -23,7 +60,7 @@ int main()
     }
     puts("Initializing EPD...");
     EPD_Init();
-    EPD_DisplayImage(images[0]);
+    EPD_DisplayImage(dithered_image);
     // EPD_Sleep();
     GT911_Config_t gt911_config = {
         .x_resolution=480, 
