@@ -3,3 +3,11 @@
 
 #define EPD_WIDTH   800
 #define EPD_HEIGHT  480
+
+typedef enum{
+    RPI_OK,
+    RPI_ERR,
+    RPI_DATA,
+    RPI_CLKT,
+    RPI_NACK
+}RPI_ERR_t;

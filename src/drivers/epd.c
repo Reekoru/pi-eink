@@ -1,7 +1,7 @@
 #include "drivers/epd.h"
 #include "drivers/gpio.h"
 #include "utils/time.h"
-#include "utils/spi.h"
+#include "drivers/spi.h"
 #include "project_settings.h"
 #include <stddef.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include "utils/spi.h"
+#include "drivers/spi.h"
 #include <bcm2835.h>
 
 void SPI_Init(SPI_Config_t config)
