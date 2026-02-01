@@ -158,6 +158,9 @@ GT911_Status_t GT911_ReadStatus(uint8_t *status)
     return GT911_OK;
 }
 
+/**
+ * @brief Reads the touch and provides the coordinate and gesture. Executes the registered OnTouchReleasedHandler on release.
+ */
 GT911_Status_t GT911_ReadTouch(GT911_TouchPoint_t *touch)
 {
     uint8_t status;

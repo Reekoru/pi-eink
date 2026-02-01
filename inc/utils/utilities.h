@@ -15,4 +15,6 @@ typedef enum{
     STATUS_NACK
 }err_t;
 
+void exit_program(int code);
+
 #endif // COMMON_H

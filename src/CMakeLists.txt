@@ -8,6 +8,7 @@ add_library(drivers
 
 add_library(utils
     utils/time.c
+    utils/utilities.c
 )
 
 add_executable(app
