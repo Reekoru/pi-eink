@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/inc",
+                "${workspaceFolder}/inc/drivers",
+                "${workspaceFolder}/inc/utils",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/drivers",
+                "${workspaceFolder}/src/utils",
+                "${workspaceFolder}/src/images",
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
