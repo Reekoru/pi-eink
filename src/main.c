@@ -295,7 +295,7 @@ static void eink_init(void)
         .y_resolution=480, 
         .num_touch_points=1, 
         .reverse_y = false, 
-        .reverse_x = false, 
+        .reverse_x = true, 
         .switch_xy=true, 
         .sw_noise_reduction=true, 
         .mode = NORMAL
