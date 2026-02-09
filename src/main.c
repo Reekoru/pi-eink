@@ -40,6 +40,8 @@
 #include "utils/image.h"
 #include <bcm2835.h>
 
+pthread_mutex_t lvgl_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 /* Internal functions */
 static void configure_simulator(int argc, char ** argv);
 static void print_lvgl_version(void);
@@ -65,6 +67,19 @@ static void eink_update_image(uint8_t* image_data);
 #define EPD_WIDTH 480
 #define EPD_HEIGHT 800
 
+/* Others */
+static void lvgl_tp_read(lv_indev_t * indev, lv_indev_data_t * data);
+
+void* lvgl_handler_thread(void* arg) {
+    while(1) {
+        pthread_mutex_lock(&lvgl_mutex);
+        lv_tick_inc(5);
+        lv_timer_handler();    // Process touch
+        pthread_mutex_unlock(&lvgl_mutex);
+        usleep(5000);   
+    }
+    return NULL;
+}
 
 /**
  * @brief Print LVGL version
@@ -168,6 +183,7 @@ int main(int argc, char ** argv)
     /* Initialize LVGL. */
     lv_init();
 
+    /* Initialize EINK display */
     eink_init();
 
     /* Initialize the configured backend */
@@ -182,8 +198,14 @@ int main(int argc, char ** argv)
     }
 #endif
 
+    pthread_mutex_lock(&lvgl_mutex);
+    lv_indev_t * indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev, lvgl_tp_read);
+
     /*Create a Demo*/
     lv_demo_widgets();
+    pthread_mutex_unlock(&lvgl_mutex);
     // lv_demo_widgets_start_slideshow();
 
     lv_timer_create(save_framebuffer_2bit_timer_cb, 10000, NULL);
@@ -269,12 +291,12 @@ static void eink_init(void)
     epd_init();
     // epd_sleep();
     gt911_config_t gt911_config = {
-        .x_resolution=480, 
-        .y_resolution=800, 
+        .x_resolution=800, 
+        .y_resolution=480, 
         .num_touch_points=1, 
-        .reverse_y = true, 
-        .reverse_x = true, 
-        .switch_xy=false, 
+        .reverse_y = false, 
+        .reverse_x = false, 
+        .switch_xy=true, 
         .sw_noise_reduction=true, 
         .mode = NORMAL
     };
@@ -301,6 +323,13 @@ static void eink_init(void)
         epd_close();
         exit_program(1);
     }
+
+    pthread_t lv_thread;
+    if (pthread_create(&lv_thread, NULL, lvgl_handler_thread, NULL) != 0) {
+        fprintf(stderr, "Failed to create LVGL handler thread\n");
+        epd_close();
+        exit_program(1);
+    }
 }
 
 static void eink_update_image(uint8_t* image_data)
@@ -310,4 +339,17 @@ static void eink_update_image(uint8_t* image_data)
     epd_display_image(dithered);
     printf("E-ink Updated from single frame file.\n");
     free(dithered);
+}
+
+static void lvgl_tp_read(lv_indev_t * indev, lv_indev_data_t * data)
+{
+    (void) indev;
+    if(touch.is_touched) {
+        printf("Touch at x=%d, y=%d\n", touch.coordinate.x, touch.coordinate.y);
+        data->state = LV_INDEV_STATE_PRESSED;
+        data->point.x = touch.coordinate.x;
+        data->point.y = touch.coordinate.y;
+    } else {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
 }
